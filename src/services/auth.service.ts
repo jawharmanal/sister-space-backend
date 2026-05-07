@@ -59,7 +59,7 @@ export const inscrireUtilisatrice = async (donnees: DonneesInscription) => {
     `INSERT INTO Utilisatrice 
       (email, mot_de_passe_hash, prenom, pseudo, date_naissance, id_ville, bio, statut, role)
     VALUES 
-      ($1, $2, $3, $4, $5, $6, $7, 'EN_ATTENTE', 'UTILISATRICE')
+      ($1, $2, $3, $4, $5, $6, $7, 'ACTIF', 'UTILISATRICE')
     RETURNING id, email, prenom, pseudo, statut, date_creation`,
     [email, mot_de_passe_hash, prenom, pseudo, date_naissance, id_ville, bio || null]
   );
