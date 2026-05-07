@@ -19,7 +19,14 @@ dotenv.config();
 const app = express();
 
 // Middlewares
-app.use(cors());
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',  // pour ton dev local
+    'https://sister-space-frontend.vercel.app',  // ton front Vercel
+  ],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
