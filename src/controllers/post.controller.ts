@@ -142,3 +142,37 @@ export const unlikePost = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
+// ----------------------------------------------------------------------------
+// POST /api/posts/:id/commentaires — Créer un commentaire
+// ----------------------------------------------------------------------------
+export const creerCommentaire = async (req: Request, res: Response) => {
+  try {
+    const id_post = parseInt(req.params.id as string);
+    const { contenu } = req.body;
+    const id_auteure = (req as any).utilisatrice.id;
+
+    if (!contenu) {
+      return res.status(400).json({ success: false, message: 'Contenu requis' });
+    }
+
+    const commentaire = await postService.creerCommentaire(id_post, id_auteure, contenu);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Commentaire ajouté !',
+      data: commentaire,
+    });
+  } catch (error: any) {
+    if (error.message === 'POST_INTROUVABLE') {
+      return res.status(404).json({ success: false, message: 'Post introuvable' });
+    }
+    if (error.message === 'CONTENU_VIDE') {
+      return res.status(400).json({ success: false, message: 'Le commentaire ne peut pas être vide' });
+    }
+    if (error.message === 'CONTENU_TROP_LONG') {
+      return res.status(400).json({ success: false, message: 'Le commentaire est trop long (max 500 caractères)' });
+    }
+    console.error('Erreur création commentaire :', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};

@@ -126,5 +126,38 @@ router.post('/:id/like', authentifier, postController.likerPost);
  *         description: Like introuvable
  */
 router.delete('/:id/like', authentifier, postController.unlikePost);
+/**
+ * @openapi
+ * /api/posts/{id}/commentaires:
+ *   post:
+ *     tags: [Posts]
+ *     summary: Ajouter un commentaire à un post
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [contenu]
+ *             properties:
+ *               contenu: { type: string, example: "Super post ! 🌸", description: "Max 500 caractères" }
+ *     responses:
+ *       201:
+ *         description: Commentaire créé
+ *       400:
+ *         description: Contenu invalide
+ *       401:
+ *         description: Token manquant
+ *       404:
+ *         description: Post introuvable
+ */
+router.post('/:id/commentaires', authentifier, postController.creerCommentaire);
 
 export default router;

@@ -163,4 +163,49 @@ export const unlikePost = async (id_post: number, id_utilisatrice: number) => {
   }
 
   return { liked: false };
+
+};
+
+// ----------------------------------------------------------------------------
+// Créer un commentaire sur un post
+// ----------------------------------------------------------------------------
+export const creerCommentaire = async (id_post: number, id_auteure: number, contenu: string) => {
+  // Validation : le contenu ne doit pas être vide
+  if (!contenu || contenu.trim().length === 0) {
+    throw new Error('CONTENU_VIDE');
+  }
+
+  // Validation : max 500 caractères (RM-07)
+  if (contenu.length > 500) {
+    throw new Error('CONTENU_TROP_LONG');
+  }
+
+  // Vérifier que le post existe
+  const postExiste = await pool.query(
+    'SELECT id FROM Post WHERE id = $1 AND est_supprime = FALSE',
+    [id_post]
+  );
+  if (postExiste.rows.length === 0) {
+    throw new Error('POST_INTROUVABLE');
+  }
+
+  // Créer le commentaire
+  const resultat = await pool.query(`
+    INSERT INTO Commentaire (id_post, id_auteure, contenu)
+    VALUES ($1, $2, $3)
+    RETURNING id, contenu, date_creation, id_auteure
+  `, [id_post, id_auteure, contenu]);
+
+  // Récupérer aussi les infos de l'auteure pour l'affichage
+  const commentaire = resultat.rows[0];
+  const auteureResult = await pool.query(
+    'SELECT prenom, pseudo FROM Utilisatrice WHERE id = $1',
+    [id_auteure]
+  );
+
+  return {
+    ...commentaire,
+    auteure_prenom: auteureResult.rows[0].prenom,
+    auteure_pseudo: auteureResult.rows[0].pseudo,
+  };
 };
