@@ -110,3 +110,20 @@ export const demarrerConversation = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
+// ----------------------------------------------------------------------------
+// GET /api/conversations/non-lus — Compter les messages non lus
+// ----------------------------------------------------------------------------
+export const compterNonLus = async (req: Request, res: Response) => {
+  try {
+    const id_utilisatrice = (req as any).utilisatrice.id;
+    const resultat = await messageService.compterMessagesNonLus(id_utilisatrice);
+    
+    return res.status(200).json({
+      success: true,
+      data: resultat,
+    });
+  } catch (error) {
+    console.error('Erreur comptage non lus :', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};

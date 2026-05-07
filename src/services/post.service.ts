@@ -20,16 +20,34 @@ export interface DonneesPost {
 // ----------------------------------------------------------------------------
 // Lister les posts du fil (avec filtre optionnel par centre d'intérêt)
 // ----------------------------------------------------------------------------
+
+// Mots-clés associés à chaque catégorie pour le filtrage
+const MOTS_CLES_CATEGORIES: Record<number, string[]> = {
+  1: ['resto', 'restaurant', 'café', 'cafe', 'brunch', 'cuisine', 'food', 'plat', 'manger'],     // Restos
+  2: ['film', 'cinéma', 'cinema', 'série', 'serie', 'netflix', 'movie'],                         // Cinéma
+  3: ['shopping', 'mode', 'vêtement', 'vetement', 'soldes', 'achat', 'pépite', 'pepite'],        // Shopping
+  4: ['expo', 'musée', 'musee', 'art', 'théâtre', 'theatre', 'galerie', 'culture'],              // Culture
+  5: ['sport', 'course', 'running', 'gym', 'yoga', 'marathon', 'fitness', 'run', 'cours'],       // Sport
+  6: ['bien-être', 'bien etre', 'méditation', 'meditation', 'self-care', 'mindfulness', 'zen'],  // Bien-être
+  7: ['musique', 'music', 'concert', 'festival', 'playlist', 'chanson'],                          // Musique
+  8: ['voyage', 'trip', 'lisbon', 'paris', 'road trip', 'destination', 'travel', 'vacances'],   // Voyages
+};
+
 export const listerPosts = async (id_centre_interet?: number) => {
-  // Si un filtre est demandé, on ajoute une condition WHERE sur les centres d'intérêt
-  const filtreCondition = id_centre_interet
-    ? `AND p.id_auteure IN (
-        SELECT id_utilisatrice FROM Utilisatrice_CentreInteret 
-        WHERE id_centre_interet = $1
-      )`
-    : '';
-  
-  const params = id_centre_interet ? [id_centre_interet] : [];
+  // Si un filtre est demandé, on filtre par mots-clés dans le contenu
+  let filtreCondition = '';
+  let params: any[] = [];
+
+  if (id_centre_interet && MOTS_CLES_CATEGORIES[id_centre_interet]) {
+    const motsCles = MOTS_CLES_CATEGORIES[id_centre_interet];
+    
+    // Construire une condition WHERE avec ILIKE pour chaque mot-clé (insensible à la casse)
+    const conditions = motsCles.map((_, index) => `LOWER(p.contenu) LIKE $${index + 1}`).join(' OR ');
+    filtreCondition = `AND (${conditions})`;
+    
+    // Paramètres : chaque mot-clé entouré de % pour LIKE
+    params = motsCles.map(mot => `%${mot.toLowerCase()}%`);
+  }
 
   const resultat = await pool.query(`
     SELECT 

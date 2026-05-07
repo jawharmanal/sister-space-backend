@@ -155,3 +155,19 @@ export const demarrerConversation = async (id_utilisatrice_1: number, id_utilisa
 
   return { id: nouvelle.rows[0].id, deja_existante: false };
 };
+
+// ----------------------------------------------------------------------------
+// Compter les messages non lus (toutes conversations confondues)
+// ----------------------------------------------------------------------------
+export const compterMessagesNonLus = async (id_utilisatrice: number) => {
+  const resultat = await pool.query(`
+    SELECT COUNT(*) AS nb_total
+    FROM Message m
+    JOIN Conversation c ON c.id = m.id_conversation
+    WHERE m.est_lu = FALSE
+      AND m.id_expeditrice <> $1
+      AND (c.id_utilisatrice_1 = $1 OR c.id_utilisatrice_2 = $1)
+  `, [id_utilisatrice]);
+  
+  return { nb_total: parseInt(resultat.rows[0].nb_total) };
+};
