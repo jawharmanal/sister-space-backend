@@ -108,6 +108,7 @@ export const register = async (req: Request, res: Response) => {
     });
   }
 };
+
 // ----------------------------------------------------------------------------
 // GET /api/auth/me — Récupérer les infos de l'utilisatrice connectée
 // ----------------------------------------------------------------------------
@@ -156,7 +157,7 @@ export const login = async (req: Request, res: Response) => {
         token: resultat.token,
         utilisatrice: resultat.utilisatrice,
       },
-});
+    });
 
   } catch (error: any) {
     if (error.message === 'IDENTIFIANTS_INCORRECTS') {
@@ -167,9 +168,27 @@ export const login = async (req: Request, res: Response) => {
     }
     if (error.message.startsWith('COMPTE_')) {
       const statut = error.message.replace('COMPTE_', '');
+
+      // Messages personnalisés selon le statut 🌸
+      let messageStatut = '';
+      switch (statut) {
+        case 'EN_ATTENTE':
+          messageStatut = 'Ton compte est en attente de validation par notre équipe 🌸 On revient vers toi très vite !';
+          break;
+        case 'REFUSE':
+          messageStatut = 'Ton inscription n\'a pas été acceptée. Contacte-nous pour plus d\'infos.';
+          break;
+        case 'BANNI':
+          messageStatut = 'Ton compte a été banni. Contacte-nous si tu penses qu\'il s\'agit d\'une erreur.';
+          break;
+        default:
+          messageStatut = `Ton compte est ${statut}`;
+      }
+
       return res.status(403).json({
         success: false,
-        message: `Votre compte est ${statut}`,
+        message: messageStatut,
+        statut: statut,
       });
     }
 
@@ -179,5 +198,4 @@ export const login = async (req: Request, res: Response) => {
       message: 'Erreur serveur',
     });
   }
-  
 };

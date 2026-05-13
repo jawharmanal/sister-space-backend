@@ -54,12 +54,12 @@ export const inscrireUtilisatrice = async (donnees: DonneesInscription) => {
   const saltRounds = 12;
   const mot_de_passe_hash = await bcrypt.hash(mot_de_passe, saltRounds);
 
-  // -------- 4. Créer l'utilisatrice en BDD --------
+  // -------- 4. Créer l'utilisatrice en BDD (statut EN_ATTENTE -> validation manuelle par admin) --------
   const resultat = await pool.query(
     `INSERT INTO Utilisatrice 
       (email, mot_de_passe_hash, prenom, pseudo, date_naissance, id_ville, bio, statut, role)
     VALUES 
-      ($1, $2, $3, $4, $5, $6, $7, 'ACTIF', 'UTILISATRICE')
+      ($1, $2, $3, $4, $5, $6, $7, 'EN_ATTENTE', 'UTILISATRICE')
     RETURNING id, email, prenom, pseudo, statut, date_creation`,
     [email, mot_de_passe_hash, prenom, pseudo, date_naissance, id_ville, bio || null]
   );
@@ -114,18 +114,18 @@ export const connecterUtilisatrice = async (
     throw new Error(`COMPTE_${utilisatrice.statut}`);
   }
 
-// 4. Générer le token JWT
-//    - Si "Se souvenir de moi" coché : 30 jours
-//    - Sinon : 24 heures
-const token = jwt.sign(
-  {
-    id: utilisatrice.id,
-    email: utilisatrice.email,
-    role: utilisatrice.role,
-  },
-  process.env.JWT_SECRET as string,
-  { expiresIn: seSouvenirDeMoi ? '30d' : '24h' }
-);
+  // 4. Générer le token JWT
+  //    - Si "Se souvenir de moi" coché : 30 jours
+  //    - Sinon : 24 heures
+  const token = jwt.sign(
+    {
+      id: utilisatrice.id,
+      email: utilisatrice.email,
+      role: utilisatrice.role,
+    },
+    process.env.JWT_SECRET as string,
+    { expiresIn: seSouvenirDeMoi ? '30d' : '24h' }
+  );
 
   // 5. Retourner les infos + le token (sans le hash du mot de passe !)
   return {
