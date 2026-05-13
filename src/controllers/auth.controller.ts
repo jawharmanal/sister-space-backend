@@ -138,7 +138,7 @@ export const moi = async (req: Request, res: Response) => {
 // ----------------------------------------------------------------------------
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, mot_de_passe } = req.body;
+    const { email, mot_de_passe, seSouvenirDeMoi } = req.body;
 
     if (!email || !mot_de_passe) {
       return res.status(400).json({
@@ -147,7 +147,7 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    const resultat = await authService.connecterUtilisatrice(email, mot_de_passe);
+    const resultat = await authService.connecterUtilisatrice(email, mot_de_passe, seSouvenirDeMoi);
 
     return res.status(200).json({
       success: true,

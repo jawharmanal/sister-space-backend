@@ -84,7 +84,11 @@ export const inscrireUtilisatrice = async (donnees: DonneesInscription) => {
 // FONCTION : Connexion d'une utilisatrice
 // ----------------------------------------------------------------------------
 
-export const connecterUtilisatrice = async (email: string, mot_de_passe: string) => {
+export const connecterUtilisatrice = async (
+  email: string, 
+  mot_de_passe: string,
+  seSouvenirDeMoi: boolean = false
+) => {
   // 1. Récupérer l'utilisatrice par email
   const resultat = await pool.query(
     `SELECT id, email, mot_de_passe_hash, prenom, pseudo, statut, role 
@@ -110,16 +114,18 @@ export const connecterUtilisatrice = async (email: string, mot_de_passe: string)
     throw new Error(`COMPTE_${utilisatrice.statut}`);
   }
 
-// 4. Générer le token JWT (valide 7 jours)
-  const token = jwt.sign(
-    {
-      id: utilisatrice.id,
-      email: utilisatrice.email,
-      role: utilisatrice.role,
-    },
-    process.env.JWT_SECRET as string,
-    { expiresIn: '7d' }
-  );
+// 4. Générer le token JWT
+//    - Si "Se souvenir de moi" coché : 30 jours
+//    - Sinon : 24 heures
+const token = jwt.sign(
+  {
+    id: utilisatrice.id,
+    email: utilisatrice.email,
+    role: utilisatrice.role,
+  },
+  process.env.JWT_SECRET as string,
+  { expiresIn: seSouvenirDeMoi ? '30d' : '24h' }
+);
 
   // 5. Retourner les infos + le token (sans le hash du mot de passe !)
   return {
